@@ -1,7 +1,18 @@
 import { Star } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import type { Watch } from "@/data/watches";
 import { formatPrice } from "@/utils/format";
+
+interface Watch {
+  id: string;
+  name: string;
+  brand: string;
+  model: string;
+  price: number;
+  rating: number;
+  image: string;
+  description: string;
+  stock: number;
+}
 
 export function WatchCard({ watch }: { watch: Watch }) {
   return (
@@ -13,26 +24,23 @@ export function WatchCard({ watch }: { watch: Watch }) {
       <div className="relative aspect-square overflow-hidden bg-secondary">
         <img
           src={watch.image}
-          alt={`${watch.brand} ${watch.model}`}
+          alt={watch.name}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
-        {!watch.inStock && (
+        {watch.stock <= 0 && (
           <span className="absolute left-3 top-3 rounded bg-background/80 px-2 py-1 text-xs uppercase tracking-wider text-muted-foreground backdrop-blur">
-            Sold out
+            Out of stock
           </span>
         )}
-        <span className="absolute right-3 top-3 rounded bg-background/70 px-2 py-1 text-xs uppercase tracking-wider text-primary backdrop-blur">
-          {watch.category}
-        </span>
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">{watch.brand}</p>
-        <h3 className="font-display text-lg leading-tight">{watch.model}</h3>
+        <h3 className="font-display text-lg leading-tight">{watch.name}</h3>
+        <p className="text-sm text-muted-foreground">{watch.model}</p>
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <Star className="h-3 w-3 fill-primary text-primary" />
           <span>{watch.rating.toFixed(1)}</span>
-          <span>· {watch.reviews} reviews</span>
         </div>
         <div className="mt-auto pt-3 text-xl font-medium text-gradient-gold">
           {formatPrice(watch.price)}

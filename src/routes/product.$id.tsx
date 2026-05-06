@@ -1,11 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/layouts/MainLayout";
-import { fetchWatchById } from "@/api/watchService";
-import type { Watch } from "@/data/watches";
+import { getSingleWatch } from "@/api/watchService";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/utils/format";
 import { Star } from "lucide-react";
+
+interface Watch {
+  id: string;
+  name: string;
+  brand: string;
+  model: string;
+  price: number;
+  rating: number;
+  image: string;
+  description: string;
+  stock: number;
+}
 
 export const Route = createFileRoute("/product/$id")({
   component: ProductPage,
@@ -17,34 +28,41 @@ function ProductPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchWatchById(id).then((w) => {
+    const fetchData = async () => {
+      setLoading(true);
+      const w = await getSingleWatch(id);
       setWatch(w);
       setLoading(false);
-    });
+    };
+    fetchData();
   }, [id]);
 
-  if (loading) return <MainLayout><div className="container py-32 text-center text-muted-foreground">Loading…</div></MainLayout>;
+  if (loading) return <MainLayout><div className="container py-32 text-center text-muted-foreground">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+    Loading…
+  </div></MainLayout>;
   if (!watch) return <MainLayout><div className="container py-32 text-center">Not found. <Link to="/shop" className="text-primary underline">Back to shop</Link></div></MainLayout>;
 
   return (
     <MainLayout>
       <section className="container mx-auto grid gap-12 px-6 py-20 md:grid-cols-2">
         <div className="overflow-hidden rounded-lg border border-border bg-card shadow-luxe">
-          <img src={watch.image} alt={`${watch.brand} ${watch.model}`} className="h-full w-full object-cover" />
+          <img src={watch.image} alt={watch.name} className="h-full w-full object-cover" />
         </div>
         <div className="flex flex-col justify-center">
           <p className="text-xs uppercase tracking-[0.4em] text-primary">{watch.brand}</p>
-          <h1 className="mt-3 font-display text-5xl">{watch.model}</h1>
+          <h1 className="mt-3 font-display text-5xl">{watch.name}</h1>
+          <p className="mt-2 text-lg text-muted-foreground">{watch.model}</p>
           <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
             <Star className="h-4 w-4 fill-primary text-primary" />
-            {watch.rating.toFixed(1)} · {watch.reviews} reviews · {watch.category}
+            {watch.rating.toFixed(1)}
           </div>
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground">{watch.description}</p>
           <div className="mt-8 text-4xl text-gradient-gold">{formatPrice(watch.price)}</div>
           <div className="mt-8 flex gap-3">
-            <Button size="lg" disabled={!watch.inStock}
+            <Button size="lg" disabled={watch.stock <= 0}
               className="bg-gradient-gold text-primary-foreground shadow-glow hover:opacity-90">
-              {watch.inStock ? "Add to Cart" : "Sold Out"}
+              {watch.stock > 0 ? "Add to Cart" : "Out of Stock"}
             </Button>
             <Button size="lg" variant="outline" className="border-primary/40">Save</Button>
           </div>

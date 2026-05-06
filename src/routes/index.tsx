@@ -3,9 +3,20 @@ import { useEffect, useState } from "react";
 import { MainLayout } from "@/layouts/MainLayout";
 import { Hero } from "@/components/Hero";
 import { WatchGrid } from "@/components/WatchGrid";
-import { fetchWatches } from "@/api/watchService";
-import type { Watch } from "@/data/watches";
+import { getWatches } from "@/api/watchService";
 import { Button } from "@/components/ui/button";
+
+interface Watch {
+  id: string;
+  name: string;
+  brand: string;
+  model: string;
+  price: number;
+  rating: number;
+  image: string;
+  description: string;
+  stock: number;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,9 +30,31 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [items, setItems] = useState<Watch[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    fetchWatches().then((all) => setItems(all.slice(0, 8)));
+    const fetchData = async () => {
+      setLoading(true);
+      const data = await getWatches();
+      setItems(data.slice(0, 8));
+      setLoading(false);
+    };
+    fetchData();
   }, []);
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <Hero />
+        <section className="container mx-auto px-6 py-24">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </section>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
       <Hero />
